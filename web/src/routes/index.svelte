@@ -107,7 +107,7 @@
     <div class="w-full h-full flex justify-center px-10 flex-col">
         {#if !techOk}
             <div class="container self-center items-center flex flex-col">
-                <div class="text-6xl space-y-4">
+                <div class="text-4xl sm:text-6xl space-y-4">
                     <noscript>
                         <TechStatus status={false}>JavaScript</TechStatus>
                     </noscript>
