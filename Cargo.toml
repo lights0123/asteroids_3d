@@ -1,0 +1,62 @@
+[package]
+name = "asteroids_3d"
+version = "0.1.0"
+authors = ["lights0123 <developer@lights0123.com>"]
+edition = "2018"
+#build = "build.rs"
+resolver = "2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "asteroids_3d_lib"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+bevy_rapier3d = "0.9"
+nalgebra = { version = "0.25", features = ["convert-glam", "convert-glam-unchecked", "serde-serialize"] }
+rand = "0.8"
+tracing = "0.1"
+serde = "1.0"
+postcard = { version = "0.6", default-features = false, features = ["use-std"] }
+anyhow = "1.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bevy-inspector-egui = "0.4"
+bevy = "0.5"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+bevy = { version = "0.5", default-features = false, features = ["bevy_gltf", "bevy_winit", "bevy_gilrs", "render"] }
+bevy_webgl2 = "0.5"
+console_error_panic_hook = "0.1"
+gilrs-core = { version = "0.3", features = ["wasm-bindgen"] }
+awsm_web = { version = "0.16", default-features = false, features = ["dom"] }
+crossbeam-channel = "0.5"
+winit = { version = "0.24", default-features = false }
+web-sys = {version = "0.3", features = ["Document", "Element", "Window"] }
+gloo-events = "0.1"
+wasm-bindgen = "0.2"
+
+[build-dependencies]
+gltf = "0.15"
+parry3d = "0.3"
+serde = "1.0"
+nalgebra = { version = "0.25", features = ["serde-serialize"] }
+postcard = { version = "0.6", default-features = false, features = ["use-std"] }
+filetime = "0.2"
+sha2 = "0.9.3"
+rayon = "1.5"
+anyhow = "1.0"
+
+[profile.dev.package."*"]
+opt-level = 2
+[profile.dev.package.rapier3d]
+opt-level = 3
+[profile.dev.package.parry3d]
+opt-level = 3
+[profile.dev.package.gilrs]
+overflow-checks = false
+
+[profile.dev.build-override]
+opt-level = 3
+[profile.release.build-override]
+opt-level = 3

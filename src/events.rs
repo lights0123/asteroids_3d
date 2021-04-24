@@ -1,0 +1,112 @@
+use bevy::prelude::*;
+use bevy_rapier3d::physics::EventQueue;
+use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent};
+
+pub struct EventsPlugin;
+use crate::asteroids::AsteroidBundle;
+use crate::bounds::ColliderProps;
+use crate::controls::Controllable;
+use crate::{Asteroid, Bullet};
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug, SystemLabel)]
+struct EventAdapter;
+
+impl Plugin for EventsPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_event::<Contact>()
+            .add_system(events_adapter.system().label(EventAdapter))
+            .add_system(ship_asteroid_contact.system().after(EventAdapter))
+            .add_system(bullet_asteroid_contact.system().after(EventAdapter));
+    }
+}
+
+enum Contact {
+    Started(Entity, Entity),
+    Stopped(Entity, Entity),
+}
+
+fn events_adapter(
+    mut contact_events: EventWriter<Contact>,
+    events: Res<EventQueue>,
+    c: Res<ColliderSet>,
+) {
+    let get_entity = |collider: ColliderHandle| {
+        c.get(collider)
+            .map(|z| Entity::from_bits(z.user_data as u64))
+    };
+
+    while let Ok(contact_event) = events.contact_events.pop() {
+        match contact_event {
+            ContactEvent::Started(a, b) => {
+                if let (Some(a), Some(b)) = (get_entity(a), get_entity(b)) {
+                    contact_events.send(Contact::Started(a, b));
+                }
+            }
+            ContactEvent::Stopped(a, b) => {
+                if let (Some(a), Some(b)) = (get_entity(a), get_entity(b)) {
+                    contact_events.send(Contact::Stopped(a, b));
+                }
+            }
+        }
+    }
+}
+
+fn ship_asteroid_contact(
+    mut events: EventReader<Contact>,
+    ship_query: Query<(), With<Controllable>>,
+    asteroid_query: Query<(), With<Asteroid>>,
+) {
+    for event in events.iter() {
+        match *event {
+            Contact::Started(a, b) => {
+                if [(a, b), (b, a)]
+                    .iter()
+                    .copied()
+                    .any(|(a, b)| (ship_query.get(a).is_ok() && asteroid_query.get(b).is_ok()))
+                {
+                    println!("game over");
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn bullet_asteroid_contact(
+    mut commands: Commands,
+    mut events: EventReader<Contact>,
+    bullet_query: Query<(), With<Bullet>>,
+    mut asteroid_query: Query<(&Transform, &mut Asteroid), With<Asteroid>>,
+) {
+    for event in events.iter() {
+        match *event {
+            Contact::Started(a, b) => {
+                for (bullet, asteroid_e) in [(a, b), (b, a)].iter().copied() {
+                    if let (Ok(_), Ok((asteroid_transform, asteroid))) =
+                        (bullet_query.get(bullet), asteroid_query.get_mut(asteroid_e))
+                    {
+                        commands.entity(bullet).despawn_recursive();
+
+                        let mut asteroid: Mut<Asteroid> = asteroid;
+                        let asteroid_transform: &Transform = asteroid_transform;
+                        // Wrapping so if two bullets hit at the same time, it doesn't panic
+                        asteroid.hits = asteroid.hits.wrapping_sub(1);
+                        if asteroid.hits == 0 {
+                            commands.entity(asteroid_e).despawn_recursive();
+                            for child in asteroid.children.iter() {
+                                commands.spawn_bundle(AsteroidBundle {
+                                    collider_props: ColliderProps {
+                                        linvel: Default::default(),
+                                        angvel: Default::default(),
+                                    },
+                                    ..AsteroidBundle::new(&child, *asteroid_transform)
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
