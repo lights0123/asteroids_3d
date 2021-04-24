@@ -91,15 +91,25 @@ fn pointer_events(
     }
 }
 
-pub fn toggle_grab_cursor(bevy_window: &mut Window, windows: &bevy::winit::WinitWindows) {
+pub fn set_grab_cursor(
+    bevy_window: &mut Window,
+    locked: bool,
+    windows: &bevy::winit::WinitWindows,
+) {
     if let Some(window) = windows
         .window_id_to_winit
         .get(&bevy_window.id())
         .and_then(|id| windows.windows.get(id))
     {
-        window.canvas().request_pointer_lock();
-        bevy_window.set_cursor_lock_mode(true);
-        bevy_window.set_cursor_visibility(false);
+        if locked {
+            window.canvas().request_pointer_lock();
+        } else {
+            web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .exit_pointer_lock();
+        }
     }
 }
 

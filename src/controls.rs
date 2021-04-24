@@ -1,12 +1,13 @@
-use crate::util::DespawnTimer;
-#[cfg(target_arch = "wasm32")]
-use crate::wasm::{cursor_locked, toggle_grab_cursor};
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy_rapier3d::physics::RigidBodyHandleComponent;
 use bevy_rapier3d::rapier::dynamics::{RigidBodyBuilder, RigidBodySet};
 use bevy_rapier3d::rapier::geometry::ColliderBuilder;
 use bevy_rapier3d::rapier::math::Vector;
+
+use crate::util::DespawnTimer;
+#[cfg(target_arch = "wasm32")]
+use crate::wasm::{cursor_locked, set_grab_cursor};
 
 mod camera;
 
@@ -23,7 +24,11 @@ impl Plugin for ControlPlugin {
             .add_system(player_move.system())
             .add_system(player_look.system())
             .add_system(shoot.system())
+            .add_system(cursor_lock.system())
             .add_plugin(camera::CameraPlugin);
+
+        #[cfg(not(target_arch = "wasm32"))]
+        app.add_system(cursor_unlock.system());
     }
 }
 
@@ -180,9 +185,12 @@ fn player_move(
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn toggle_grab_cursor(window: &mut Window) {
-    window.set_cursor_lock_mode(!window.cursor_locked());
-    window.set_cursor_visibility(!window.cursor_visible());
+fn set_grab_cursor(window: &mut Window, locked: bool) {
+    if locked {
+        window.set_cursor_position(window.position().unwrap().as_f32());
+    }
+    window.set_cursor_lock_mode(locked);
+    window.set_cursor_visibility(!locked);
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -194,7 +202,6 @@ fn player_look(
     gamepad: Res<Option<Gamepad>>,
     axes: Res<Axis<GamepadAxis>>,
     settings: Res<MovementSettings>,
-    keys: Res<Input<KeyCode>>,
     time: Res<Time>,
     mut windows: ResMut<Windows>,
     #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
@@ -266,13 +273,39 @@ fn player_look(
             }
         }
     }
+}
 
-    if keys.just_pressed(KeyCode::Z) {
-        toggle_grab_cursor(
+fn cursor_lock(
+    mut windows: ResMut<Windows>,
+    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
+    mouse_button_input: Res<Input<MouseButton>>,
+) {
+    let window = windows.get_primary_mut().unwrap();
+    if !cursor_locked(
+        window,
+        #[cfg(target_arch = "wasm32")]
+        &winit_windows,
+    ) && mouse_button_input.just_pressed(MouseButton::Left)
+    {
+        set_grab_cursor(
             window,
+            true,
             #[cfg(target_arch = "wasm32")]
             &winit_windows,
         );
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn cursor_unlock(
+    mut windows: ResMut<Windows>,
+    mut focus_events: EventReader<bevy::window::WindowFocused>,
+) {
+    let window = windows.get_primary_mut().unwrap();
+    if let Some(e) = focus_events.iter().last() {
+        if !e.focused && cursor_locked(window) {
+            set_grab_cursor(window, false);
+        }
     }
 }
 

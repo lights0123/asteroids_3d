@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 body {
-	@apply bg-black text-white;
+    @apply bg-black text-white;
+}
+
+p a {
+    @apply border-b border-blue-500 text-blue-300;
 }
