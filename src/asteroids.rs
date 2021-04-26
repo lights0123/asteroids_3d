@@ -124,8 +124,6 @@ impl FromWorld for Asteroids {
 }
 
 fn spawn(
-    mut _commands: Commands,
-    _time: Res<Time>,
     _asteroids: Res<Asteroids>,
     mut _timer_opt: Local<Option<Timer>>,
 ) {
