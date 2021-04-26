@@ -4,10 +4,8 @@ use gltf::Buffer;
 use parry3d::math::Point;
 use parry3d::transformation::vhacd::VHACD;
 use rayon::prelude::*;
-use sha2::Digest;
 use std::array::IntoIter;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::path::{Component, Path, PathBuf};
 
 fn get_files(path: &Path, files: &mut Vec<PathBuf>, filter_glb: bool) -> std::io::Result<()> {
@@ -82,40 +80,5 @@ fn main() -> Result<()> {
     filetime::set_file_mtime("assets", assets_modified.into())?;
     println!("cargo:rerun-if-changed=assets/");
 
-    if std::env::var("CARGO_CFG_TARGET_ARCH").map_or(false, |s| s == "wasm32") {
-        let mut paths = vec![];
-        get_files("assets".as_ref(), &mut paths, false)?;
-        let out_dir = PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
-        let assets = out_dir.join("assets");
-        let _ = std::fs::remove_dir_all(&assets);
-        std::fs::create_dir(assets)?;
-        let _ = std::fs::remove_dir_all("web/static/assets");
-        std::fs::create_dir_all("web/static/assets")?;
-        for path in &paths {
-            let asset = out_dir.join(path);
-            let new_name = {
-                let mut components = path.components();
-                // remove the assets/
-                components.next();
-                let mut sha = sha2::Sha256::default();
-                std::io::copy(&mut std::fs::File::open(path)?, &mut sha)?;
-                let mut p = components.as_path().to_owned();
-                let mut file_name = p.file_stem().unwrap_or_default().to_owned();
-                let file_ext = p.extension().map(ToOwned::to_owned);
-                let hash = u32::from_be_bytes(sha.finalize()[..4].try_into().unwrap());
-                file_name.push(format!("-{:x}", hash));
-                p.set_file_name(file_name);
-                if let Some(ext) = file_ext {
-                    p.set_extension(ext);
-                }
-                p
-            };
-            let web_asset = Path::new("web/static/assets").join(new_name.as_path());
-            std::fs::create_dir_all(asset.parent().unwrap())?;
-            std::fs::create_dir_all(web_asset.parent().unwrap())?;
-            std::fs::write(asset, new_name.as_path().to_str().unwrap())?;
-            std::fs::copy(path, web_asset)?;
-        }
-    }
     Ok(())
 }

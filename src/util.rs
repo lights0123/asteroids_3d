@@ -46,22 +46,11 @@ pub fn nalgebra_pos(pos: Vec3, rot: Quat) -> Isometry<f32> {
     Isometry::from_parts(Translation3::from(Vector::from(pos)), rot.into())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 macro_rules! asset {
     ($path:literal, $part:literal) => {
         concat!($path, "#", $part)
     };
     ($path:literal) => {
         $path
-    };
-}
-
-#[cfg(target_arch = "wasm32")]
-macro_rules! asset {
-    ($path:literal, $part:literal) => {
-        concat!(asset!($path), "#", $part)
-    };
-    ($path:literal) => {
-        include_str!(concat!(env!("OUT_DIR"), "/assets/", $path))
     };
 }
