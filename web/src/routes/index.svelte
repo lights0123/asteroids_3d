@@ -65,7 +65,7 @@
             return res;
         }
 
-        wasm_bindgen(load());
+        (await wasm_bindgen(load())).main();
     }
 
     let techStatus = {
