@@ -1,10 +1,8 @@
 use std::sync::Arc;
 
 use bevy::prelude::*;
-use rand::Rng;
 
 use crate::custom_asset::CustomAsset;
-use crate::game_area::{HEIGHT, LENGTH, WIDTH};
 
 pub struct AsteroidsPlugin;
 
@@ -126,37 +124,9 @@ impl FromWorld for Asteroids {
 }
 
 fn spawn(
-    mut commands: Commands,
-    time: Res<Time>,
-    asteroids: Res<Asteroids>,
-    mut timer_opt: Local<Option<Timer>>,
+    mut _commands: Commands,
+    _time: Res<Time>,
+    _asteroids: Res<Asteroids>,
+    mut _timer_opt: Local<Option<Timer>>,
 ) {
-    let mut rng = rand::thread_rng();
-    if let Some(ref mut timer) = *timer_opt {
-        if timer.tick(time.delta()).finished() {
-            *timer = Timer::from_seconds(rng.gen_range(1.0..3.0), false);
-            let direction = match rng.gen_range(0..6) {
-                0 => Vec3::new(1., 0., 0.),
-                1 => Vec3::new(-1., 0., 0.),
-                2 => Vec3::new(0., 1., 0.),
-                3 => Vec3::new(0., -1., 0.),
-                4 => Vec3::new(0., 0., 1.),
-                5 => Vec3::new(0., 0., -1.),
-                _ => unreachable!(),
-            };
-            let mut origin =
-                Transform::from_translation(-direction * Vec3::new(LENGTH, HEIGHT, WIDTH));
-            origin.scale = Vec3::new(
-                rng.gen_range(0.5..1.5),
-                rng.gen_range(0.5..1.5),
-                rng.gen_range(0.5..1.5),
-            );
-            let child = &(asteroids.0)[rng.gen_range(0..asteroids.0.len())];
-            commands.spawn_bundle(AsteroidBundle {
-                ..AsteroidBundle::new(&child, origin)
-            });
-        }
-    } else {
-        *timer_opt = Some(Timer::from_seconds(2., false));
-    }
 }

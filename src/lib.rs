@@ -7,7 +7,6 @@ use bevy_rapier3d::rapier::math::Vector;
 use crate::asteroids::{Asteroid, AsteroidsPlugin};
 use crate::controls::{ControlPlugin, Controllable};
 use crate::events::EventsPlugin;
-use crate::game_area::GameAreaPlugin;
 use crate::util::UtilPlugin;
 
 #[macro_use]
@@ -16,7 +15,6 @@ mod asteroids;
 mod controls;
 mod custom_asset;
 mod events;
-mod game_area;
 mod physics;
 #[cfg(target_arch = "wasm32")]
 mod wasm;
@@ -45,7 +43,6 @@ pub fn main() {
     .add_plugin(UtilPlugin)
     .add_plugin(RapierPhysicsPlugin)
     .add_plugin(EventsPlugin)
-    .add_plugin(GameAreaPlugin)
     .insert_resource(RapierConfiguration {
         gravity: Vector::default(),
         ..Default::default()
