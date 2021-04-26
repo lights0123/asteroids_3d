@@ -3,7 +3,6 @@ use bevy_rapier3d::physics::EventQueue;
 use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent};
 
 use crate::asteroids::AsteroidBundle;
-use crate::bounds::ColliderProps;
 use crate::controls::Controllable;
 use crate::{Asteroid, Bullet};
 
@@ -96,10 +95,6 @@ fn bullet_asteroid_contact(
                             commands.entity(asteroid_e).despawn_recursive();
                             for child in asteroid.children.iter() {
                                 commands.spawn_bundle(AsteroidBundle {
-                                    collider_props: ColliderProps {
-                                        linvel: Default::default(),
-                                        angvel: Default::default(),
-                                    },
                                     ..AsteroidBundle::new(&child, *asteroid_transform)
                                 });
                             }

@@ -13,7 +13,6 @@ use crate::util::UtilPlugin;
 #[macro_use]
 mod util;
 mod asteroids;
-mod bounds;
 mod controls;
 mod custom_asset;
 mod events;
@@ -52,7 +51,6 @@ pub fn main() {
         ..Default::default()
     })
     .add_startup_system(setup.system())
-    .add_system(bounds::calculate_bounds.system())
     .run();
 }
 
@@ -69,7 +67,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         })
         .insert(Controllable)
-        .insert(bounds::CalcBounds)
         .insert(
             asset_server.load::<custom_asset::CustomAsset, _>(asset!(
                 "vhacd/ship.custom",
@@ -80,17 +77,4 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             1.,
             Vector::from_row_slice(&[0.5, 0.5, 0.5]),
         ));
-
-    commands.spawn_bundle(LightBundle {
-        light: Light {
-            color: Color::rgb(1.0, 1.0, 1.0),
-            depth: 0.1..20.0,
-            fov: f32::to_radians(60.0),
-            intensity: 200000.0,
-            range: 2000.0,
-            ..Default::default()
-        },
-        transform: Transform::from_xyz(200., 200., 72.),
-        ..Default::default()
-    });
 }

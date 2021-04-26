@@ -3,7 +3,6 @@ use std::sync::Arc;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::bounds::ColliderProps;
 use crate::custom_asset::CustomAsset;
 use crate::game_area::{HEIGHT, LENGTH, WIDTH};
 
@@ -32,8 +31,6 @@ pub struct AsteroidBundle {
     #[bundle]
     pub pbr: PbrBundle,
     pub vhacd: Handle<CustomAsset>,
-    pub calc_bounds: crate::bounds::CalcBounds,
-    pub collider_props: ColliderProps,
     pub asteroid: Asteroid,
 }
 
@@ -49,8 +46,6 @@ impl AsteroidBundle {
                 hits: plan.hits,
                 children: plan.children.clone(),
             },
-            calc_bounds: Default::default(),
-            collider_props: Default::default(),
             pbr: PbrBundle {
                 mesh: plan.pbr.mesh.clone(),
                 material: plan.pbr.material.clone(),
@@ -158,10 +153,6 @@ fn spawn(
             );
             let child = &(asteroids.0)[rng.gen_range(0..asteroids.0.len())];
             commands.spawn_bundle(AsteroidBundle {
-                collider_props: ColliderProps {
-                    linvel: direction * rng.gen_range(2.0..8.0),
-                    ..Default::default()
-                },
                 ..AsteroidBundle::new(&child, origin)
             });
         }
