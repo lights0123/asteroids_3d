@@ -3,12 +3,14 @@ use bevy::render::camera::Camera;
 
 use super::Controllable;
 
-pub struct CameraPlugin;
+pub struct CameraPlugin<T>(pub T);
 
-impl Plugin for CameraPlugin {
+impl<T: crate::util::StateType> Plugin for CameraPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(startup.system())
-            .add_system(update_camera.system());
+        app.add_system_set(
+            SystemSet::on_update(self.0.clone()).with_system(update_camera.system()),
+        )
+        .add_system_set(SystemSet::on_enter(self.0.clone()).with_system(startup.system()));
     }
 }
 

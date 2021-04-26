@@ -2,19 +2,20 @@ use bevy::prelude::*;
 use bevy_rapier3d::physics::EventQueue;
 use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent};
 
-use crate::asteroids::AsteroidBundle;
-use crate::bounds::ColliderProps;
-use crate::controls::Controllable;
-use crate::{Asteroid, Bullet};
+use super::asteroids::{Asteroid, AsteroidBundle};
+use super::bounds::ColliderProps;
+use super::controls::Controllable;
 
-pub struct EventsPlugin;
+pub struct EventsPlugin<T>(pub T);
 
-impl Plugin for EventsPlugin {
+impl<T: crate::util::StateType> Plugin for EventsPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_event::<Contact>()
-            .add_system(events_adapter.system().label(EventAdapter))
-            .add_system(ship_asteroid_contact.system().after(EventAdapter))
-            .add_system(bullet_asteroid_contact.system().after(EventAdapter));
+        app.add_event::<Contact>().add_system_set(
+            SystemSet::on_update(self.0.clone())
+                .with_system(events_adapter.system().label(EventAdapter))
+                .with_system(ship_asteroid_contact.system().after(EventAdapter))
+                .with_system(bullet_asteroid_contact.system().after(EventAdapter)),
+        );
     }
 }
 
@@ -76,7 +77,7 @@ fn ship_asteroid_contact(
 fn bullet_asteroid_contact(
     mut commands: Commands,
     mut events: EventReader<Contact>,
-    bullet_query: Query<(), With<Bullet>>,
+    bullet_query: Query<(), With<super::Bullet>>,
     mut asteroid_query: Query<(&Transform, &mut Asteroid), With<Asteroid>>,
 ) {
     for event in events.iter() {

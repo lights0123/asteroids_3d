@@ -1,3 +1,7 @@
+use std::fmt::Debug;
+use std::hash::Hash;
+
+use bevy::ecs::component::Component;
 use bevy::prelude::*;
 use bevy_rapier3d::na::Translation3;
 use bevy_rapier3d::physics::ColliderHandleComponent;
@@ -65,3 +69,7 @@ macro_rules! asset {
         include_str!(concat!(env!("OUT_DIR"), "/assets/", $path))
     };
 }
+
+pub trait StateType: Component + Debug + Clone + Eq + Hash {}
+
+impl<T: Component + Debug + Clone + Eq + Hash> StateType for T {}

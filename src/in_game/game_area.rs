@@ -7,11 +7,11 @@ use bevy_rapier3d::rapier::geometry::ColliderBuilder;
 
 use crate::physics::OneWayPlatformHook;
 
-pub struct GameAreaPlugin;
+pub struct GameAreaPlugin<T>(pub T);
 
-impl Plugin for GameAreaPlugin {
+impl<T: crate::util::StateType> Plugin for GameAreaPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(spawn.system());
+        app.add_system_set(SystemSet::on_enter(self.0.clone()).with_system(spawn.system()));
     }
 }
 

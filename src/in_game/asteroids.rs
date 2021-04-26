@@ -3,15 +3,16 @@ use std::sync::Arc;
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::bounds::ColliderProps;
+use super::bounds::ColliderProps;
+use super::game_area::{HEIGHT, LENGTH, WIDTH};
 use crate::custom_asset::CustomAsset;
-use crate::game_area::{HEIGHT, LENGTH, WIDTH};
 
-pub struct AsteroidsPlugin;
+pub struct AsteroidsPlugin<T>(pub T);
 
-impl Plugin for AsteroidsPlugin {
+impl<T: crate::util::StateType> Plugin for AsteroidsPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<Asteroids>().add_system(spawn.system());
+        app.init_resource::<Asteroids>()
+            .add_system_set(SystemSet::on_update(self.0.clone()).with_system(spawn.system()));
     }
 }
 
@@ -32,7 +33,7 @@ pub struct AsteroidBundle {
     #[bundle]
     pub pbr: PbrBundle,
     pub vhacd: Handle<CustomAsset>,
-    pub calc_bounds: crate::bounds::CalcBounds,
+    pub calc_bounds: super::bounds::CalcBounds,
     pub collider_props: ColliderProps,
     pub asteroid: Asteroid,
 }

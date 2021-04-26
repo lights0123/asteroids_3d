@@ -10,6 +10,16 @@ use bevy_rapier3d::rapier::math::{Isometry, Point, Vector};
 
 use crate::custom_asset::CustomAsset;
 
+pub struct CalcBoundsPlugin<T>(pub T);
+
+impl<T: crate::util::StateType> Plugin for CalcBoundsPlugin<T> {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_system_set(
+            SystemSet::on_update(self.0.clone()).with_system(calculate_bounds.system()),
+        );
+    }
+}
+
 #[derive(Default)]
 pub struct CalcBounds;
 
@@ -19,7 +29,7 @@ pub struct ColliderProps {
     pub angvel: Vec3,
 }
 
-pub fn calculate_bounds(
+fn calculate_bounds(
     mut commands: Commands,
     meshes: Res<Assets<Mesh>>,
     custom_assets: Res<Assets<CustomAsset>>,

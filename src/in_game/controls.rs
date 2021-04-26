@@ -11,22 +11,23 @@ use crate::wasm::{cursor_locked, set_grab_cursor};
 
 mod camera;
 
-pub struct ControlPlugin;
+pub struct ControlPlugin<T>(pub T);
 
-impl Plugin for ControlPlugin {
+impl<T: crate::util::StateType> Plugin for ControlPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.init_resource::<MovementSettings>()
-            .init_resource::<Option<Gamepad>>()
-            .init_resource::<BulletAssets>()
-            .add_system_to_stage(CoreStage::PreUpdate, connect_gamepad.system())
-            .add_system(player_move.system())
-            .add_system(player_look.system())
-            .add_system(shoot.system())
-            .add_system(cursor_lock.system())
-            .add_plugin(camera::CameraPlugin);
-
+        let set = SystemSet::on_update(self.0.clone())
+            .with_system(player_move.system())
+            .with_system(player_look.system())
+            .with_system(shoot.system())
+            .with_system(cursor_lock.system())
+            .with_system(transition_to_pause.system());
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_system(cursor_unlock.system());
+        let set = set.with_system(cursor_unlock.system());
+
+        app.init_resource::<MovementSettings>()
+            .init_resource::<BulletAssets>()
+            .add_system_set(set)
+            .add_plugin(camera::CameraPlugin(self.0.clone()));
     }
 }
 
@@ -54,29 +55,6 @@ impl FromWorld for BulletAssets {
                     emissive: Color::rgb(0.65, 0., 0.),
                     ..Default::default()
                 }),
-        }
-    }
-}
-
-fn connect_gamepad(
-    mut lobby: ResMut<Option<Gamepad>>,
-    mut gamepad_event: EventReader<GamepadEvent>,
-) {
-    for event in gamepad_event.iter() {
-        match &event {
-            GamepadEvent(gamepad, GamepadEventType::Connected) => {
-                if lobby.is_none() {
-                    *lobby = Some(*gamepad);
-                }
-                println!("{:?} Connected", gamepad);
-            }
-            GamepadEvent(gamepad, GamepadEventType::Disconnected) => {
-                if *lobby == Some(*gamepad) {
-                    *lobby = None;
-                }
-                println!("{:?} Disconnected", gamepad);
-            }
-            _ => (),
         }
     }
 }
@@ -296,6 +274,21 @@ fn cursor_lock(
     }
 }
 
+fn transition_to_pause(
+    mut state: ResMut<State<crate::AppState>>,
+    mut windows: ResMut<Windows>,
+    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
+) {
+    let window = windows.get_primary_mut().unwrap();
+    if !cursor_locked(
+        window,
+        #[cfg(target_arch = "wasm32")]
+        &winit_windows,
+    ) {
+        state.push(crate::AppState::Paused);
+    }
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 fn cursor_unlock(
     mut windows: ResMut<Windows>,
@@ -341,7 +334,7 @@ fn shoot(
                     transform,
                     ..Default::default()
                 })
-                .insert(crate::Bullet)
+                .insert(super::Bullet)
                 .insert(
                     RigidBodyBuilder::new_dynamic()
                         .position(crate::util::nalgebra_pos(
