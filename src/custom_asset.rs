@@ -1,9 +1,10 @@
+use std::collections::HashMap;
+
 use bevy::asset::{AssetLoader, LoadContext, LoadedAsset};
 use bevy::prelude::*;
 use bevy::reflect::TypeUuid;
 use bevy::utils::BoxedFuture;
 use bevy_rapier3d::rapier::math::Point;
-use std::collections::HashMap;
 
 pub struct CustomAssetPlugin;
 

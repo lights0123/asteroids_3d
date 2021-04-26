@@ -2,14 +2,12 @@ use bevy::prelude::*;
 use bevy_rapier3d::physics::EventQueue;
 use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent};
 
-pub struct EventsPlugin;
 use crate::asteroids::AsteroidBundle;
 use crate::bounds::ColliderProps;
 use crate::controls::Controllable;
 use crate::{Asteroid, Bullet};
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug, SystemLabel)]
-struct EventAdapter;
+pub struct EventsPlugin;
 
 impl Plugin for EventsPlugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -19,6 +17,9 @@ impl Plugin for EventsPlugin {
             .add_system(bullet_asteroid_contact.system().after(EventAdapter));
     }
 }
+
+#[derive(SystemLabel, Clone, Eq, PartialEq, Hash, Debug)]
+struct EventAdapter;
 
 enum Contact {
     Started(Entity, Entity),

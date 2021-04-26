@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
-use crate::game_area::{HEIGHT, LENGTH, WIDTH};
 use bevy::prelude::*;
 use rand::Rng;
+
+use crate::bounds::ColliderProps;
+use crate::custom_asset::CustomAsset;
+use crate::game_area::{HEIGHT, LENGTH, WIDTH};
 
 pub struct AsteroidsPlugin;
 
@@ -126,8 +129,6 @@ impl FromWorld for Asteroids {
         Asteroids(asteroids_vec)
     }
 }
-use crate::bounds::ColliderProps;
-use crate::custom_asset::CustomAsset;
 
 fn spawn(
     mut commands: Commands,

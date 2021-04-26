@@ -1,9 +1,11 @@
-use crate::physics::OneWayPlatformHook;
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use bevy_rapier3d::physics::InteractionPairFilters;
 use bevy_rapier3d::rapier::dynamics::RigidBodyBuilder;
 use bevy_rapier3d::rapier::geometry::ColliderBuilder;
-use std::collections::HashMap;
+
+use crate::physics::OneWayPlatformHook;
 
 pub struct GameAreaPlugin;
 

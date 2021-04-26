@@ -11,8 +11,6 @@ use crate::wasm::{cursor_locked, set_grab_cursor};
 
 mod camera;
 
-pub struct Controllable;
-
 pub struct ControlPlugin;
 
 impl Plugin for ControlPlugin {
@@ -31,6 +29,8 @@ impl Plugin for ControlPlugin {
         app.add_system(cursor_unlock.system());
     }
 }
+
+pub struct Controllable;
 
 struct BulletAssets {
     mesh: Handle<Mesh>,

@@ -1,8 +1,9 @@
+use std::collections::HashMap;
+
 use bevy_rapier3d::rapier::math::Vector;
 use bevy_rapier3d::rapier::pipeline::{
     ContactModificationContext, PhysicsHooks, PhysicsHooksFlags,
 };
-use std::collections::HashMap;
 
 pub struct OneWayPlatformHook {
     pub platforms: HashMap<u64, Vector<f32>>,

@@ -14,7 +14,6 @@ impl Plugin for UtilPlugin {
 }
 
 struct UserIdSet;
-pub struct DespawnTimer(pub Timer);
 
 fn attach_entity_id(
     mut commands: Commands,
@@ -28,6 +27,8 @@ fn attach_entity_id(
         }
     });
 }
+
+pub struct DespawnTimer(pub Timer);
 
 fn despawn_timer(
     mut commands: Commands,
