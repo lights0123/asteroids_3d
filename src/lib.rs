@@ -29,8 +29,8 @@ pub fn main() {
         .add_state(AppState::InGame);
     #[cfg(target_arch = "wasm32")]
     app.add_plugin(bevy_webgl2::WebGL2Plugin);
-    #[cfg(not(target_arch = "wasm32"))]
-    app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
+    // #[cfg(not(target_arch = "wasm32"))]
+    // app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
     app.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 1.0 / 5.0f32,
