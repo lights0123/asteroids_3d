@@ -5,24 +5,23 @@ use bevy::prelude::*;
 
 use crate::util::{cursor_locked, set_grab_cursor};
 
-pub struct PausePlugin;
+pub struct HomePlugin;
 
-impl Plugin for PausePlugin {
+impl Plugin for HomePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        let update_set = SystemSet::on_update(crate::AppState::Paused)
+        let update_set = SystemSet::on_update(crate::AppState::Home)
             .with_system(button_system.system())
             .with_system(resume_button_system.system())
-            .with_system(resume.system())
-            .with_system(quit_to_title.system());
+            .with_system(resume.system());
         #[cfg(not(target_arch = "wasm32"))]
         let update_set = update_set.with_system(quit_button_system.system());
         app.init_resource::<ButtonMaterials>()
             .add_system_set(
-                SystemSet::on_enter(crate::AppState::Paused).with_system(setup_menu.system()),
+                SystemSet::on_enter(crate::AppState::Home).with_system(setup_menu.system()),
             )
             .add_system_set(update_set)
             .add_system_set(
-                SystemSet::on_exit(crate::AppState::Paused).with_system(remove_menu.system()),
+                SystemSet::on_exit(crate::AppState::Home).with_system(remove_menu.system()),
             );
     }
 }
@@ -81,9 +80,7 @@ fn create_button<'a, 'c>(
 
 struct PartOfUi;
 
-struct ResumeButton;
-
-struct QuitToTitleButton;
+struct StartButton;
 
 #[cfg(not(target_arch = "wasm32"))]
 struct QuitButton;
@@ -102,6 +99,7 @@ fn setup_menu(
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                justify_content: JustifyContent::Center,
                 ..Default::default()
             },
             material: materials.add(Color::rgba(0., 0., 0.05, 0.85).into()),
@@ -112,7 +110,7 @@ fn setup_menu(
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Px(400.), Val::Auto),
+                        size: Size::new(Val::Px(200.), Val::Auto),
                         margin: Rect {
                             left: Val::Px(30.),
                             ..Default::default()
@@ -139,22 +137,15 @@ fn setup_menu(
                                 parent,
                                 &button_materials,
                                 asset_server.load(asset!("RobotoCondensed-Regular.ttf")),
-                                "RESUME",
+                                "START",
                             )
-                            .insert(ResumeButton);
-                            create_button(
-                                parent,
-                                &button_materials,
-                                asset_server.load(asset!("RobotoCondensed-Regular.ttf")),
-                                "QUIT TO TITLE",
-                            )
-                            .insert(QuitToTitleButton);
+                            .insert(StartButton);
                             #[cfg(not(target_arch = "wasm32"))]
                             create_button(
                                 parent,
                                 &button_materials,
                                 asset_server.load(asset!("RobotoCondensed-Regular.ttf")),
-                                "QUIT TO DESKTOP",
+                                "QUIT",
                             )
                             .insert(QuitButton);
                         });
@@ -195,7 +186,7 @@ fn button_system(
 fn resume_button_system(
     mut windows: ResMut<Windows>,
     #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
-    interaction_query: Query<&Interaction, (Changed<Interaction>, With<ResumeButton>)>,
+    interaction_query: Query<&Interaction, (Changed<Interaction>, With<StartButton>)>,
     mut change_next: Local<bool>,
 ) {
     if let Ok(interaction) = interaction_query.single() {
@@ -214,6 +205,16 @@ fn resume_button_system(
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+fn quit_button_system(
+    interaction_query: Query<&Interaction, (Changed<Interaction>, With<QuitButton>)>,
+    mut app_exit_events: EventWriter<AppExit>,
+) {
+    if matches!(interaction_query.single(), Ok(&Interaction::Clicked)) {
+        app_exit_events.send(AppExit);
+    }
+}
+
 fn resume(
     mut state: ResMut<State<crate::AppState>>,
     windows: ResMut<Windows>,
@@ -225,25 +226,6 @@ fn resume(
         #[cfg(target_arch = "wasm32")]
         &winit_windows,
     ) {
-        log_error!(state.pop());
-    }
-}
-
-fn quit_to_title(
-    mut state: ResMut<State<crate::AppState>>,
-    interaction_query: Query<&Interaction, (Changed<Interaction>, With<QuitToTitleButton>)>,
-) {
-    if matches!(interaction_query.single(), Ok(&Interaction::Clicked)) {
-        log_error!(state.replace(crate::AppState::Home));
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn quit_button_system(
-    interaction_query: Query<&Interaction, (Changed<Interaction>, With<QuitButton>)>,
-    mut app_exit_events: EventWriter<AppExit>,
-) {
-    if matches!(interaction_query.single(), Ok(&Interaction::Clicked)) {
-        app_exit_events.send(AppExit);
+        log_error!(state.replace(crate::AppState::InGame));
     }
 }

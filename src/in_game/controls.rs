@@ -5,9 +5,9 @@ use bevy_rapier3d::rapier::dynamics::{RigidBodyBuilder, RigidBodySet};
 use bevy_rapier3d::rapier::geometry::ColliderBuilder;
 use bevy_rapier3d::rapier::math::Vector;
 
+use crate::in_game::TiedToGame;
 use crate::util::DespawnTimer;
-#[cfg(target_arch = "wasm32")]
-use crate::wasm::{cursor_locked, set_grab_cursor};
+use crate::util::{cursor_locked, set_grab_cursor};
 
 mod camera;
 
@@ -19,8 +19,8 @@ impl<T: crate::util::StateType> Plugin for ControlPlugin<T> {
             .with_system(player_move.system())
             .with_system(player_look.system())
             .with_system(shoot.system())
-            .with_system(cursor_lock.system())
-            .with_system(transition_to_pause.system());
+            .with_system(transition_to_pause.system())
+            .with_system(cursor_unlock_gamepad.system());
         #[cfg(not(target_arch = "wasm32"))]
         let set = set.with_system(cursor_unlock.system());
 
@@ -162,20 +162,6 @@ fn player_move(
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-fn set_grab_cursor(window: &mut Window, locked: bool) {
-    if locked {
-        window.set_cursor_position(window.position().unwrap().as_f32());
-    }
-    window.set_cursor_lock_mode(locked);
-    window.set_cursor_visibility(!locked);
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn cursor_locked(window: &Window) -> bool {
-    window.cursor_locked()
-}
-
 fn player_look(
     gamepad: Res<Option<Gamepad>>,
     axes: Res<Axis<GamepadAxis>>,
@@ -253,27 +239,6 @@ fn player_look(
     }
 }
 
-fn cursor_lock(
-    mut windows: ResMut<Windows>,
-    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
-    mouse_button_input: Res<Input<MouseButton>>,
-) {
-    let window = windows.get_primary_mut().unwrap();
-    if !cursor_locked(
-        window,
-        #[cfg(target_arch = "wasm32")]
-        &winit_windows,
-    ) && mouse_button_input.just_pressed(MouseButton::Left)
-    {
-        set_grab_cursor(
-            window,
-            true,
-            #[cfg(target_arch = "wasm32")]
-            &winit_windows,
-        );
-    }
-}
-
 fn transition_to_pause(
     mut state: ResMut<State<crate::AppState>>,
     mut windows: ResMut<Windows>,
@@ -285,7 +250,7 @@ fn transition_to_pause(
         #[cfg(target_arch = "wasm32")]
         &winit_windows,
     ) {
-        state.push(crate::AppState::Paused);
+        log_error!(state.push(crate::AppState::Paused));
     }
 }
 
@@ -293,12 +258,39 @@ fn transition_to_pause(
 fn cursor_unlock(
     mut windows: ResMut<Windows>,
     mut focus_events: EventReader<bevy::window::WindowFocused>,
+    keys: Res<Input<KeyCode>>,
 ) {
     let window = windows.get_primary_mut().unwrap();
-    if let Some(e) = focus_events.iter().last() {
-        if !e.focused && cursor_locked(window) {
+    let focused = focus_events.iter().last().map_or(true, |e| e.focused);
+    if cursor_locked(window) {
+        if !focused {
+            set_grab_cursor(window, false);
+        } else if keys.just_pressed(KeyCode::Escape) {
+            // Center cursor
+            let position = window.position().unwrap().as_f32()
+                + Vec2::new(window.width() / 2., window.height() / 2.);
+            window.set_cursor_position(position);
             set_grab_cursor(window, false);
         }
+    }
+}
+
+fn cursor_unlock_gamepad(
+    gamepad: Res<Option<Gamepad>>,
+    button_inputs: Res<Input<GamepadButton>>,
+    mut windows: ResMut<Windows>,
+    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
+) {
+    let gamepad_button_pressed =
+        |gamepad| button_inputs.just_pressed(GamepadButton(gamepad, GamepadButtonType::Select));
+    if gamepad.map_or(false, gamepad_button_pressed) {
+        let window = windows.get_primary_mut().unwrap();
+        set_grab_cursor(
+            window,
+            false,
+            #[cfg(target_arch = "wasm32")]
+            &winit_windows,
+        );
     }
 }
 
@@ -306,8 +298,8 @@ fn shoot(
     mut commands: Commands,
     windows: Res<Windows>,
     #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
-    gamepad: Res<Option<Gamepad>>,
     mouse_button_input: Res<Input<MouseButton>>,
+    gamepad: Res<Option<Gamepad>>,
     button_inputs: Res<Input<GamepadButton>>,
     resources: Res<BulletAssets>,
     query: Query<&Transform, With<Controllable>>,
@@ -335,6 +327,7 @@ fn shoot(
                     ..Default::default()
                 })
                 .insert(super::Bullet)
+                .insert(TiedToGame)
                 .insert(
                     RigidBodyBuilder::new_dynamic()
                         .position(crate::util::nalgebra_pos(

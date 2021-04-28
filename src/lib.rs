@@ -4,6 +4,7 @@ use bevy::prelude::*;
 #[macro_use]
 mod util;
 mod custom_asset;
+mod home;
 mod in_game;
 mod pause;
 mod physics;
@@ -26,11 +27,11 @@ pub fn main() {
     app.add_plugin(wasm::WasmPlugin);
     app.insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
-        .add_state(AppState::InGame);
+        .add_state(AppState::Home);
     #[cfg(target_arch = "wasm32")]
     app.add_plugin(bevy_webgl2::WebGL2Plugin);
-    // #[cfg(not(target_arch = "wasm32"))]
-    // app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
+    #[cfg(not(target_arch = "wasm32"))]
+    app.add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new());
     app.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 1.0 / 5.0f32,
@@ -41,6 +42,7 @@ pub fn main() {
     .add_plugin(util::UtilPlugin)
     .add_plugin(in_game::InGamePlugin)
     .add_plugin(pause::PausePlugin)
+    .add_plugin(home::HomePlugin)
     .run();
 }
 

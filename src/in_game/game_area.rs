@@ -5,6 +5,7 @@ use bevy_rapier3d::physics::InteractionPairFilters;
 use bevy_rapier3d::rapier::dynamics::RigidBodyBuilder;
 use bevy_rapier3d::rapier::geometry::ColliderBuilder;
 
+use crate::in_game::TiedToGame;
 use crate::physics::OneWayPlatformHook;
 
 pub struct GameAreaPlugin<T>(pub T);
@@ -102,31 +103,35 @@ fn spawn(
 
         for i in 1..lines {
             for side in [-1., 1.].iter().copied() {
-                commands.spawn_bundle(PbrBundle {
-                    mesh: mesh.clone(),
-                    material: minor_color.clone(),
-                    transform: Transform::from_translation(tertiary_axis.set_translation(
-                        major_axis.set_translation(
-                            Default::default(),
-                            i as f32 * (major / lines_every) - (major / 2.),
-                        ),
-                        minor / 2. * side,
-                    )),
-                    ..Default::default()
-                });
+                commands
+                    .spawn_bundle(PbrBundle {
+                        mesh: mesh.clone(),
+                        material: minor_color.clone(),
+                        transform: Transform::from_translation(tertiary_axis.set_translation(
+                            major_axis.set_translation(
+                                Default::default(),
+                                i as f32 * (major / lines_every) - (major / 2.),
+                            ),
+                            minor / 2. * side,
+                        )),
+                        ..Default::default()
+                    })
+                    .insert(TiedToGame);
             }
         }
         for lr_side in [-1., 1.].iter().copied() {
             for side in [-1., 1.].iter().copied() {
-                commands.spawn_bundle(PbrBundle {
-                    mesh: mesh.clone(),
-                    material: major_color.clone(),
-                    transform: Transform::from_translation(tertiary_axis.set_translation(
-                        major_axis.set_translation(Default::default(), WIDTH / 2. * lr_side),
-                        LENGTH / 2. * side,
-                    )),
-                    ..Default::default()
-                });
+                commands
+                    .spawn_bundle(PbrBundle {
+                        mesh: mesh.clone(),
+                        material: major_color.clone(),
+                        transform: Transform::from_translation(tertiary_axis.set_translation(
+                            major_axis.set_translation(Default::default(), WIDTH / 2. * lr_side),
+                            LENGTH / 2. * side,
+                        )),
+                        ..Default::default()
+                    })
+                    .insert(TiedToGame);
             }
         }
         let plane = minor_axis
@@ -141,6 +146,7 @@ fn spawn(
                     .translation(plane_offset.x, plane_offset.y, plane_offset.z)
                     .modify_solver_contacts(true),
             )
+            .insert(TiedToGame)
             .id();
         platforms.insert(plane_id.to_bits(), (-plane_offset).normalize().into());
     };

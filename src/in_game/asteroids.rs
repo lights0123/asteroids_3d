@@ -3,9 +3,11 @@ use std::sync::Arc;
 use bevy::prelude::*;
 use rand::Rng;
 
+use crate::custom_asset::CustomAsset;
+use crate::in_game::TiedToGame;
+
 use super::bounds::ColliderProps;
 use super::game_area::{HEIGHT, LENGTH, WIDTH};
-use crate::custom_asset::CustomAsset;
 
 pub struct AsteroidsPlugin<T>(pub T);
 
@@ -29,13 +31,14 @@ pub struct AsteroidPlan {
 }
 
 #[derive(Bundle)]
-pub struct AsteroidBundle {
+pub(super) struct AsteroidBundle {
     #[bundle]
     pub pbr: PbrBundle,
     pub vhacd: Handle<CustomAsset>,
     pub calc_bounds: super::bounds::CalcBounds,
     pub collider_props: ColliderProps,
     pub asteroid: Asteroid,
+    pub tied_to_game: TiedToGame,
 }
 
 impl AsteroidBundle {
@@ -62,6 +65,7 @@ impl AsteroidBundle {
                 transform,
                 global_transform: plan.pbr.global_transform,
             },
+            tied_to_game: Default::default(),
             vhacd: plan.vhacd.clone(),
         }
     }

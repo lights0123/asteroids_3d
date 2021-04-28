@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy::render::camera::Camera;
 
+use crate::in_game::TiedToGame;
+
 use super::Controllable;
 
 pub struct CameraPlugin<T>(pub T);
@@ -15,10 +17,13 @@ impl<T: crate::util::StateType> Plugin for CameraPlugin<T> {
 }
 
 fn startup(mut commands: Commands) {
-    commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0., 9., -6.).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        ..Default::default()
-    });
+    commands
+        .spawn_bundle(PerspectiveCameraBundle {
+            transform: Transform::from_xyz(0., 9., -6.)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            ..Default::default()
+        })
+        .insert(TiedToGame);
 }
 
 fn update_camera(

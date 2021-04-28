@@ -8,6 +8,9 @@ use bevy_rapier3d::physics::ColliderHandleComponent;
 use bevy_rapier3d::rapier::geometry::ColliderSet;
 use bevy_rapier3d::rapier::math::{Isometry, Vector};
 
+#[cfg(target_arch = "wasm32")]
+pub use crate::wasm::{cursor_locked, set_grab_cursor};
+
 pub struct UtilPlugin;
 
 impl Plugin for UtilPlugin {
@@ -70,6 +73,28 @@ macro_rules! asset {
     };
 }
 
+macro_rules! log_error {
+    ($ex:expr) => {
+        if let Err(e) = $ex {
+            ::bevy::prelude::error!(error = (&e as &(dyn ::std::error::Error + 'static)))
+        }
+    };
+}
+
 pub trait StateType: Component + Debug + Clone + Eq + Hash {}
 
 impl<T: Component + Debug + Clone + Eq + Hash> StateType for T {}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn cursor_locked(window: &Window) -> bool {
+    window.cursor_locked()
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn set_grab_cursor(window: &mut Window, locked: bool) {
+    if locked {
+        window.set_cursor_position(window.position().unwrap().as_f32());
+    }
+    window.set_cursor_lock_mode(locked);
+    window.set_cursor_visibility(!locked);
+}
