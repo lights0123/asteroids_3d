@@ -3,7 +3,8 @@ name = "asteroids_3d"
 version = "0.1.0"
 authors = ["lights0123 <developer@lights0123.com>"]
 edition = "2018"
-#build = "build.rs"
+license = "MIT"
+build = "build.rs"
 resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
