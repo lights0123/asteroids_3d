@@ -43,7 +43,12 @@ pub fn main() {
     .add_plugin(in_game::InGamePlugin)
     .add_plugin(pause::PausePlugin)
     .add_plugin(home::HomePlugin)
+    .add_startup_system(setup.system())
     .run();
+}
+
+fn setup(mut commands: Commands) {
+    commands.spawn_bundle(UiCameraBundle::default());
 }
 
 fn connect_gamepad(

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::render::camera::Camera;
+use bevy::render::render_graph::base::camera::CAMERA_3D;
 
 use crate::in_game::TiedToGame;
 
@@ -29,17 +30,20 @@ fn startup(mut commands: Commands) {
 fn update_camera(
     mut query: QuerySet<(
         Query<&Transform, With<Controllable>>,
-        Query<&mut Transform, With<Camera>>,
+        Query<(&mut Transform, &Camera)>,
     )>,
 ) {
     if let Ok(controllable) = query.q0().single() {
         let controllable: Transform = *controllable;
-        if let Ok(camera) = query.q1_mut().single_mut() {
+        for (transform, camera) in query.q1_mut().iter_mut() {
+            if !matches!(camera.name.as_ref().map(|s| s.as_str()), Some(CAMERA_3D)) {
+                continue;
+            }
             // IntelliJ types
-            let mut camera: Mut<Transform> = camera;
-            camera.translation =
+            let mut transform: Mut<Transform> = transform;
+            transform.translation =
                 controllable.translation + controllable.rotation * Vec3::new(0., 9., -30.);
-            camera.look_at(
+            transform.look_at(
                 controllable.translation + controllable.rotation * Vec3::new(0., 0., 20.),
                 controllable.local_z(),
             );

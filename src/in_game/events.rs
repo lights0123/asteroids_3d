@@ -19,7 +19,7 @@ impl<T: crate::util::StateType> Plugin for EventsPlugin<T> {
     }
 }
 
-#[derive(SystemLabel, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(SystemLabel, Clone, Eq, PartialEq, Hash, Debug, Default)]
 struct EventAdapter;
 
 enum Contact {

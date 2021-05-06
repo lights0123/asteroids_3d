@@ -11,6 +11,7 @@ mod bounds;
 mod controls;
 mod events;
 mod game_area;
+mod points;
 
 pub struct InGamePlugin;
 
@@ -27,6 +28,7 @@ impl Plugin for InGamePlugin {
             .add_plugin(events::EventsPlugin(state))
             .add_plugin(game_area::GameAreaPlugin(state))
             .add_plugin(bounds::CalcBoundsPlugin(state))
+            .add_plugin(points::PointsPlugin(state))
             .add_system_set(SystemSet::on_enter(state).with_system(setup.system()))
             .add_system_set(SystemSet::on_resume(state).with_system(start.system()))
             .add_system_set(SystemSet::on_pause(state).with_system(stop.system()))

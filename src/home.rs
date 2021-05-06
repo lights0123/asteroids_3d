@@ -91,10 +91,6 @@ fn setup_menu(
     button_materials: Res<ButtonMaterials>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    // ui camera
-    commands
-        .spawn_bundle(UiCameraBundle::default())
-        .insert(PartOfUi);
     commands
         .spawn_bundle(NodeBundle {
             style: Style {
