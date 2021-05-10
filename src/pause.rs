@@ -158,8 +158,8 @@ fn setup_menu(
         });
 }
 
-fn remove_menu(mut commands: Commands, interaction_query: Query<Entity, With<PartOfUi>>) {
-    interaction_query.for_each(|e| commands.entity(e).despawn_recursive());
+fn remove_menu(mut commands: Commands, query: Query<Entity, With<PartOfUi>>) {
+    query.for_each(|e| commands.entity(e).despawn_recursive());
 }
 
 fn button_system(

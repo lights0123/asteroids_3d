@@ -7,6 +7,7 @@ impl<T: crate::util::StateType> Plugin for PointsPlugin<T> {
         app.init_resource::<Points>()
             .add_event::<AddPoints>()
             .add_system_set(SystemSet::on_enter(self.0.clone()).with_system(setup.system()))
+            .add_system_set(SystemSet::on_exit(self.0.clone()).with_system(leave.system()))
             .add_system_set(
                 SystemSet::on_update(self.0.clone())
                     .with_system(update_points.system().label(PointsSystem)),
@@ -65,6 +66,10 @@ fn setup(
                 .insert(ScoreLabel);
         })
         .insert(PartOfUi);
+}
+
+fn leave(mut commands: Commands, query: Query<Entity, With<PartOfUi>>) {
+    query.for_each(|e| commands.entity(e).despawn_recursive());
 }
 
 fn update_points(
