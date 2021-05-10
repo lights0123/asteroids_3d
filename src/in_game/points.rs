@@ -21,7 +21,7 @@ struct ScoreLabel;
 struct Points(u64);
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-pub struct AddPoints(u64);
+pub struct AddPoints(pub u64);
 
 #[derive(SystemLabel, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct PointsSystem;

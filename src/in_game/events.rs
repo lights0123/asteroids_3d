@@ -5,6 +5,7 @@ use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent}
 use super::asteroids::{Asteroid, AsteroidBundle};
 use super::bounds::ColliderProps;
 use super::controls::Controllable;
+use crate::in_game::points::AddPoints;
 
 pub struct EventsPlugin<T>(pub T);
 
@@ -77,6 +78,7 @@ fn ship_asteroid_contact(
 fn bullet_asteroid_contact(
     mut commands: Commands,
     mut events: EventReader<Contact>,
+    mut points: EventWriter<AddPoints>,
     bullet_query: Query<(), With<super::Bullet>>,
     mut asteroid_query: Query<(&Transform, &mut Asteroid), With<Asteroid>>,
 ) {
@@ -94,6 +96,7 @@ fn bullet_asteroid_contact(
                         // Wrapping so if two bullets hit at the same time, it doesn't panic
                         asteroid.hits = asteroid.hits.wrapping_sub(1);
                         if asteroid.hits == 0 {
+                            points.send(AddPoints(asteroid.points));
                             commands.entity(asteroid_e).despawn_recursive();
                             for child in asteroid.children.iter() {
                                 commands.spawn_bundle(AsteroidBundle {

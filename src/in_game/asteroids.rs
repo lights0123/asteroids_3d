@@ -20,11 +20,13 @@ impl<T: crate::util::StateType> Plugin for AsteroidsPlugin<T> {
 
 pub struct Asteroid {
     pub hits: u8,
+    pub points: u64,
     pub children: Arc<Vec<Arc<AsteroidPlan>>>,
 }
 
 pub struct AsteroidPlan {
     pub hits: u8,
+    pub points: u64,
     pub pbr: PbrBundle,
     pub vhacd: Handle<CustomAsset>,
     pub children: Arc<Vec<Arc<AsteroidPlan>>>,
@@ -51,6 +53,7 @@ impl AsteroidBundle {
         AsteroidBundle {
             asteroid: Asteroid {
                 hits: plan.hits,
+                points: plan.points,
                 children: plan.children.clone(),
             },
             calc_bounds: Default::default(),
@@ -84,6 +87,7 @@ impl FromWorld for Asteroids {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let asteroids = [Arc::new(AsteroidPlan {
             hits: 3,
+            points: 3,
             pbr: PbrBundle {
                 mesh: asset_server.load(asset!("Itokawa_1_1.glb", "Mesh0/Primitive0")),
                 material: asset_server.load(asset!("Itokawa_1_1.glb", "Material0")),
@@ -94,6 +98,7 @@ impl FromWorld for Asteroids {
             children: Arc::new(vec![
                 Arc::new(AsteroidPlan {
                     hits: 2,
+                    points: 2,
                     pbr: PbrBundle {
                         mesh: asset_server.load(asset!("Itokawa_broken_1.glb", "Mesh0/Primitive0")),
                         material: asset_server.load(asset!("Itokawa_broken_1.glb", "Material0")),
@@ -107,6 +112,7 @@ impl FromWorld for Asteroids {
                 }),
                 Arc::new(AsteroidPlan {
                     hits: 1,
+                    points: 1,
                     pbr: PbrBundle {
                         mesh: asset_server.load(asset!("Itokawa_broken_1.glb", "Mesh1/Primitive0")),
                         material: asset_server.load(asset!("Itokawa_broken_1.glb", "Material0")),
