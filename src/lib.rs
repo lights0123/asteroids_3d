@@ -7,6 +7,7 @@ mod custom_asset;
 mod home;
 mod in_game;
 mod pause;
+mod end;
 mod physics;
 #[cfg(target_arch = "wasm32")]
 mod wasm;
@@ -16,6 +17,7 @@ enum AppState {
     Home,
     InGame,
     Paused,
+    End,
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen::prelude::wasm_bindgen)]
@@ -43,6 +45,7 @@ pub fn main() {
     .add_plugin(in_game::InGamePlugin)
     .add_plugin(pause::PausePlugin)
     .add_plugin(home::HomePlugin)
+    .add_plugin(end::EndPlugin)
     .add_startup_system(setup.system())
     .run();
 }

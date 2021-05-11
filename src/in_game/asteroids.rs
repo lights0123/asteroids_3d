@@ -74,12 +74,6 @@ impl AsteroidBundle {
     }
 }
 
-impl From<&Arc<AsteroidPlan>> for Asteroid {
-    fn from(_: &Arc<AsteroidPlan>) -> Self {
-        todo!()
-    }
-}
-
 pub struct Asteroids(pub Vec<Arc<AsteroidPlan>>);
 
 impl FromWorld for Asteroids {

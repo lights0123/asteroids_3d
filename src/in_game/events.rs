@@ -6,6 +6,7 @@ use super::asteroids::{Asteroid, AsteroidBundle};
 use super::bounds::ColliderProps;
 use super::controls::Controllable;
 use crate::in_game::points::AddPoints;
+use crate::util::set_grab_cursor;
 
 pub struct EventsPlugin<T>(pub T);
 
@@ -56,8 +57,11 @@ fn events_adapter(
 
 fn ship_asteroid_contact(
     mut events: EventReader<Contact>,
+    mut state: ResMut<State<crate::AppState>>,
     ship_query: Query<(), With<Controllable>>,
     asteroid_query: Query<(), With<Asteroid>>,
+    mut windows: ResMut<Windows>,
+    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
 ) {
     for event in events.iter() {
         match *event {
@@ -67,7 +71,14 @@ fn ship_asteroid_contact(
                     .copied()
                     .any(|(a, b)| (ship_query.get(a).is_ok() && asteroid_query.get(b).is_ok()))
                 {
-                    println!("game over");
+                    let window = windows.get_primary_mut().unwrap();
+                    set_grab_cursor(
+                        window,
+                        false,
+                        #[cfg(target_arch = "wasm32")]
+                            &winit_windows,
+                    );
+                    log_error!(state.replace(crate::AppState::End));
                 }
             }
             _ => {}
