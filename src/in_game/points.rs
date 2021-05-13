@@ -16,10 +16,11 @@ impl<T: crate::util::StateType> Plugin for PointsPlugin<T> {
 }
 
 struct PartOfUi;
+
 struct ScoreLabel;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-struct Points(u64);
+pub struct Points(pub u64);
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct AddPoints(pub u64);

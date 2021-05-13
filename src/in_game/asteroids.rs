@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use bevy::prelude::*;
-use rand::Rng;
+use rand::distributions::Open01;
+use rand::prelude::*;
 
 use crate::custom_asset::CustomAsset;
 use crate::in_game::TiedToGame;
@@ -74,12 +75,6 @@ impl AsteroidBundle {
     }
 }
 
-impl From<&Arc<AsteroidPlan>> for Asteroid {
-    fn from(_: &Arc<AsteroidPlan>) -> Self {
-        todo!()
-    }
-}
-
 pub struct Asteroids(pub Vec<Arc<AsteroidPlan>>);
 
 impl FromWorld for Asteroids {
@@ -141,6 +136,24 @@ impl FromWorld for Asteroids {
     }
 }
 
+struct OpenNeg11;
+
+impl Distribution<f32> for OpenNeg11 {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> f32 {
+        rng.sample::<f32, _>(Open01) * if rng.gen::<bool>() { 1. } else { -1. }
+    }
+}
+
+impl Distribution<[f32; 3]> for OpenNeg11 {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> [f32; 3] {
+        [
+            rng.sample(OpenNeg11),
+            rng.sample(OpenNeg11),
+            rng.sample(OpenNeg11),
+        ]
+    }
+}
+
 fn spawn(
     mut commands: Commands,
     time: Res<Time>,
@@ -148,29 +161,22 @@ fn spawn(
     mut timer_opt: Local<Option<Timer>>,
 ) {
     let mut rng = rand::thread_rng();
+    let radius = (LENGTH * LENGTH + WIDTH * WIDTH + HEIGHT * HEIGHT).sqrt();
     if let Some(ref mut timer) = *timer_opt {
         if timer.tick(time.delta()).finished() {
             *timer = Timer::from_seconds(rng.gen_range(1.0..3.0), false);
-            let direction = match rng.gen_range(0..6) {
-                0 => Vec3::new(1., 0., 0.),
-                1 => Vec3::new(-1., 0., 0.),
-                2 => Vec3::new(0., 1., 0.),
-                3 => Vec3::new(0., -1., 0.),
-                4 => Vec3::new(0., 0., 1.),
-                5 => Vec3::new(0., 0., -1.),
-                _ => unreachable!(),
-            };
-            let mut origin =
-                Transform::from_translation(-direction * Vec3::new(LENGTH, HEIGHT, WIDTH));
+            let vec = Vec3::from(rng.sample::<[f32; 3], _>(OpenNeg11)).normalize();
+            let position = vec * radius;
+            let mut origin = Transform::from_translation(position);
             origin.scale = Vec3::new(
                 rng.gen_range(0.5..1.5),
                 rng.gen_range(0.5..1.5),
                 rng.gen_range(0.5..1.5),
             );
-            let child = &(asteroids.0)[rng.gen_range(0..asteroids.0.len())];
+            let child = (asteroids.0).choose(&mut rng).unwrap();
             commands.spawn_bundle(AsteroidBundle {
                 collider_props: ColliderProps {
-                    linvel: direction * rng.gen_range(2.0..8.0),
+                    linvel: -vec * rng.gen_range(5.0..8.0),
                     ..Default::default()
                 },
                 ..AsteroidBundle::new(&child, origin)

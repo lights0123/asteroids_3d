@@ -1,11 +1,14 @@
 use bevy::prelude::*;
-use bevy_rapier3d::physics::EventQueue;
+use bevy_rapier3d::physics::{EventQueue, RigidBodyHandleComponent};
+use bevy_rapier3d::rapier::dynamics::RigidBodySet;
 use bevy_rapier3d::rapier::geometry::{ColliderHandle, ColliderSet, ContactEvent};
+
+use crate::in_game::points::AddPoints;
+use crate::util::set_grab_cursor;
 
 use super::asteroids::{Asteroid, AsteroidBundle};
 use super::bounds::ColliderProps;
 use super::controls::Controllable;
-use crate::in_game::points::AddPoints;
 
 pub struct EventsPlugin<T>(pub T);
 
@@ -56,8 +59,11 @@ fn events_adapter(
 
 fn ship_asteroid_contact(
     mut events: EventReader<Contact>,
+    mut state: ResMut<State<crate::AppState>>,
     ship_query: Query<(), With<Controllable>>,
     asteroid_query: Query<(), With<Asteroid>>,
+    mut windows: ResMut<Windows>,
+    #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
 ) {
     for event in events.iter() {
         match *event {
@@ -67,7 +73,14 @@ fn ship_asteroid_contact(
                     .copied()
                     .any(|(a, b)| (ship_query.get(a).is_ok() && asteroid_query.get(b).is_ok()))
                 {
-                    println!("game over");
+                    let window = windows.get_primary_mut().unwrap();
+                    set_grab_cursor(
+                        window,
+                        false,
+                        #[cfg(target_arch = "wasm32")]
+                        &winit_windows,
+                    );
+                    log_error!(state.replace(crate::AppState::End));
                 }
             }
             _ => {}
@@ -80,16 +93,25 @@ fn bullet_asteroid_contact(
     mut events: EventReader<Contact>,
     mut points: EventWriter<AddPoints>,
     bullet_query: Query<(), With<super::Bullet>>,
-    mut asteroid_query: Query<(&Transform, &mut Asteroid), With<Asteroid>>,
+    rigid_bodies: Res<RigidBodySet>,
+    mut asteroid_query: Query<
+        (&Transform, &mut Asteroid, &RigidBodyHandleComponent),
+        With<Asteroid>,
+    >,
 ) {
     for event in events.iter() {
         match *event {
             Contact::Started(a, b) => {
                 for (bullet, asteroid_e) in [(a, b), (b, a)].iter().copied() {
-                    if let (Ok(_), Ok((asteroid_transform, asteroid))) =
+                    if let (Ok(_), Ok((asteroid_transform, asteroid, rigid_body_component))) =
                         (bullet_query.get(bullet), asteroid_query.get_mut(asteroid_e))
                     {
                         commands.entity(bullet).despawn_recursive();
+
+                        let rigid_body = match rigid_bodies.get(rigid_body_component.handle()) {
+                            Some(r) => r,
+                            None => continue,
+                        };
 
                         let mut asteroid: Mut<Asteroid> = asteroid;
                         let asteroid_transform: &Transform = asteroid_transform;
@@ -101,8 +123,8 @@ fn bullet_asteroid_contact(
                             for child in asteroid.children.iter() {
                                 commands.spawn_bundle(AsteroidBundle {
                                     collider_props: ColliderProps {
-                                        linvel: Default::default(),
-                                        angvel: Default::default(),
+                                        linvel: rigid_body.linvel().clone_owned().into(),
+                                        angvel: rigid_body.angvel().clone_owned().into(),
                                     },
                                     ..AsteroidBundle::new(&child, *asteroid_transform)
                                 });

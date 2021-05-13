@@ -3,6 +3,8 @@ use bevy_rapier3d::physics::{RapierConfiguration, RapierPhysicsPlugin};
 use bevy_rapier3d::rapier::dynamics::MassProperties;
 use bevy_rapier3d::rapier::math::Vector;
 
+pub use points::Points;
+
 use crate::custom_asset;
 use crate::in_game::controls::Controllable;
 

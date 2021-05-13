@@ -93,7 +93,12 @@ fn main() -> Result<()> {
         std::fs::create_dir_all("web/static/assets")?;
         for path in &paths {
             let asset = out_dir.join(path);
-            let new_name = {
+            let new_name = if std::env::var("CARGO_FEATURE_UNCACHED_WEB_ASSETS").is_ok() {
+                let mut components = path.components();
+                // remove the assets/
+                components.next();
+                components.as_path().to_owned()
+            } else {
                 let mut components = path.components();
                 // remove the assets/
                 components.next();

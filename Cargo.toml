@@ -48,6 +48,9 @@ sha2 = "0.9.3"
 rayon = "1.5"
 anyhow = "1.0"
 
+[features]
+uncached-web-assets = []
+
 [profile.dev.package."*"]
 opt-level = 2
 [profile.dev.package.rapier3d]
