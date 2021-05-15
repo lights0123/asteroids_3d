@@ -1,10 +1,10 @@
-const sveltePreprocess = require('svelte-preprocess');
-const staticAdapter = require('@sveltejs/adapter-static');
-const svelteSVG = require('rollup-plugin-svelte-svg');
-const { promises: fs } = require('fs');
+import sveltePreprocess from 'svelte-preprocess';
+import staticAdapter from '@sveltejs/adapter-static';
+import svelteSVG from 'rollup-plugin-svelte-svg';
+import { promises as fs } from 'fs';
 
 /** @type {import('@sveltejs/kit').Config} */
-module.exports = {
+export default {
     // Consult https://github.com/sveltejs/svelte-preprocess
     // for more information about preprocessors
     preprocess: sveltePreprocess({
