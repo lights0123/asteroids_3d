@@ -16,6 +16,8 @@ impl<T: crate::util::StateType> Plugin for GameAreaPlugin<T> {
     }
 }
 
+pub struct GameAreaBound;
+
 #[derive(Copy, Clone)]
 enum Axis {
     X,
@@ -147,6 +149,7 @@ fn spawn(
                     .modify_solver_contacts(true),
             )
             .insert(TiedToGame)
+            .insert(GameAreaBound)
             .id();
         platforms.insert(plane_id.to_bits(), (-plane_offset).normalize().into());
     };

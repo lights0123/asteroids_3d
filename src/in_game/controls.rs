@@ -80,6 +80,7 @@ impl Default for MovementSettings {
 fn player_move(
     gamepad: Res<Option<Gamepad>>,
     axes: Res<Axis<GamepadAxis>>,
+    button_axes: Res<Axis<GamepadButton>>,
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
     settings: Res<MovementSettings>,
@@ -108,13 +109,15 @@ fn player_move(
             force.normalize_or_zero()
         };
 
-        force += if let Some((x, y)) = gamepad.and_then(|gamepad| {
+        force += if let Some((x, y, z_up, z_down)) = gamepad.and_then(|gamepad| {
             Some((
                 axes.get(GamepadAxis(gamepad, GamepadAxisType::LeftStickX))?,
                 axes.get(GamepadAxis(gamepad, GamepadAxisType::LeftStickY))?,
+                button_axes.get(GamepadButton(gamepad, GamepadButtonType::LeftTrigger2))?,
+                button_axes.get(GamepadButton(gamepad, GamepadButtonType::RightTrigger2))?,
             ))
         }) {
-            forward * y + right * x
+            forward * y + right * x + (z_up - z_down) * up
         } else {
             Vec3::default()
         };
@@ -282,7 +285,7 @@ fn cursor_unlock_gamepad(
     #[cfg(target_arch = "wasm32")] winit_windows: Res<bevy::winit::WinitWindows>,
 ) {
     let gamepad_button_pressed =
-        |gamepad| button_inputs.just_pressed(GamepadButton(gamepad, GamepadButtonType::Select));
+        |gamepad| button_inputs.just_pressed(GamepadButton(gamepad, GamepadButtonType::Start));
     if gamepad.map_or(false, gamepad_button_pressed) {
         let window = windows.get_primary_mut().unwrap();
         set_grab_cursor(
@@ -305,8 +308,9 @@ fn shoot(
     query: Query<&Transform, With<Controllable>>,
 ) {
     let window = windows.get_primary().unwrap();
-    let gamepad_button_pressed =
-        |gamepad| button_inputs.just_pressed(GamepadButton(gamepad, GamepadButtonType::South));
+    let gamepad_button_pressed = |gamepad| {
+        button_inputs.just_pressed(GamepadButton(gamepad, GamepadButtonType::RightTrigger))
+    };
     if cursor_locked(
         window,
         #[cfg(target_arch = "wasm32")]

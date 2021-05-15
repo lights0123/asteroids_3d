@@ -1,5 +1,3 @@
-#[cfg(not(target_arch = "wasm32"))]
-use bevy::app::AppExit;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 

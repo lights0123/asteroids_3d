@@ -14,12 +14,19 @@ pub struct EventsPlugin<T>(pub T);
 
 impl<T: crate::util::StateType> Plugin for EventsPlugin<T> {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_event::<Contact>().add_system_set(
-            SystemSet::on_update(self.0.clone())
-                .with_system(events_adapter.system().label(EventAdapter))
-                .with_system(ship_asteroid_contact.system().after(EventAdapter))
-                .with_system(bullet_asteroid_contact.system().after(EventAdapter)),
-        );
+        app.add_event::<Contact>()
+            .add_system_set(
+                SystemSet::on_update(self.0.clone())
+                    .label(EventAdapter)
+                    .with_system(events_adapter.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(self.0.clone())
+                    .after(EventAdapter)
+                    .with_system(ship_asteroid_contact.system())
+                    .with_system(bullet_asteroid_contact.system())
+                    .with_system(bullet_wall_contact.system()),
+            );
     }
 }
 
@@ -81,6 +88,28 @@ fn ship_asteroid_contact(
                         &winit_windows,
                     );
                     log_error!(state.replace(crate::AppState::End));
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn bullet_wall_contact(
+    mut commands: Commands,
+    mut events: EventReader<Contact>,
+    bullet_query: Query<(), With<super::Bullet>>,
+    asteroid_query: Query<(), With<super::game_area::GameAreaBound>>,
+) {
+    for event in events.iter() {
+        match *event {
+            Contact::Started(a, b) => {
+                if let Some(bullet) = [(a, b), (b, a)].iter().copied().find_map(|(a, b)| {
+                    bullet_query.get(a).ok()?;
+                    asteroid_query.get(b).ok()?;
+                    Some(a)
+                }) {
+                    commands.entity(bullet).despawn_recursive();
                 }
             }
             _ => {}

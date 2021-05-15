@@ -31,10 +31,10 @@ impl Plugin for InGamePlugin {
             .add_plugin(game_area::GameAreaPlugin(state))
             .add_plugin(bounds::CalcBoundsPlugin(state))
             .add_plugin(points::PointsPlugin(state))
-            .add_system_set(SystemSet::on_enter(state).with_system(setup.system()))
-            .add_system_set(SystemSet::on_resume(state).with_system(start.system()))
-            .add_system_set(SystemSet::on_pause(state).with_system(stop.system()))
-            .add_system_set(SystemSet::on_exit(state).with_system(teardown.system()));
+            .add_system_set(SystemSet::on_enter(state).with_system(enter.system()))
+            .add_system_set(SystemSet::on_resume(state).with_system(resume.system()))
+            .add_system_set(SystemSet::on_pause(state).with_system(pause.system()))
+            .add_system_set(SystemSet::on_exit(state).with_system(exit.system()));
     }
 }
 
@@ -43,7 +43,7 @@ struct Bullet;
 #[derive(Default)]
 struct TiedToGame;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn enter(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut transform = Transform::from_xyz(0., 0., 20.);
     transform.scale = Vec3::splat(0.1);
     transform.rotation = Quat::from_rotation_y(std::f32::consts::PI);
@@ -65,34 +65,31 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(MassProperties::from_cuboid(
             1.,
             Vector::from_row_slice(&[0.5, 0.5, 0.5]),
-        ));
-
-    commands
-        .spawn_bundle(LightBundle {
-            light: Light {
-                color: Color::rgb(1.0, 1.0, 1.0),
-                depth: 0.1..20.0,
-                fov: f32::to_radians(60.0),
-                intensity: 200000.0,
-                range: 2000.0,
+        ))
+        .with_children(|parent| {
+            parent.spawn_bundle(LightBundle {
+                light: Light {
+                    color: Color::rgb(1.0, 1.0, 1.0),
+                    intensity: 2000.0,
+                    range: 2000.0,
+                    ..Default::default()
+                },
+                transform: Transform::from_xyz(0., -20., -10.),
                 ..Default::default()
-            },
-            transform: Transform::from_xyz(200., 200., 72.),
-            ..Default::default()
-        })
-        .insert(TiedToGame);
+            });
+        });
 }
 
-fn start(mut config: ResMut<RapierConfiguration>) {
+fn resume(mut config: ResMut<RapierConfiguration>) {
     config.physics_pipeline_active = true;
     config.query_pipeline_active = true;
 }
 
-fn stop(mut config: ResMut<RapierConfiguration>) {
+fn pause(mut config: ResMut<RapierConfiguration>) {
     config.physics_pipeline_active = false;
     config.query_pipeline_active = false;
 }
 
-fn teardown(mut commands: Commands, despawn: Query<Entity, With<TiedToGame>>) {
+fn exit(mut commands: Commands, despawn: Query<Entity, With<TiedToGame>>) {
     despawn.for_each(|e| commands.entity(e).despawn_recursive());
 }

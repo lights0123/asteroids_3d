@@ -95,7 +95,9 @@ fn setup_menu(
         .spawn_bundle(NodeBundle {
             style: Style {
                 size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
-                justify_content: JustifyContent::Center,
+                justify_content: JustifyContent::FlexEnd,
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::ColumnReverse,
                 ..Default::default()
             },
             material: materials.add(Color::rgba(0., 0., 0.05, 0.85).into()),
@@ -115,7 +117,7 @@ fn setup_menu(
                         justify_content: JustifyContent::Center,
                         ..Default::default()
                     },
-                    material: materials.add(Color::rgba(0., 0., 0., 0.).into()),
+                    material: materials.add(Color::NONE.into()),
                     ..Default::default()
                 })
                 .with_children(|parent| {
@@ -125,7 +127,7 @@ fn setup_menu(
                                 flex_direction: FlexDirection::ColumnReverse,
                                 ..Default::default()
                             },
-                            material: materials.add(Color::rgba(0., 0., 0., 0.).into()),
+                            material: materials.add(Color::NONE.into()),
                             ..Default::default()
                         })
                         .with_children(|parent| {
@@ -145,6 +147,31 @@ fn setup_menu(
                             )
                             .insert(QuitButton);
                         });
+                });
+            parent
+                .spawn_bundle(NodeBundle {
+                    material: materials.add(Color::NONE.into()),
+                    ..Default::default()
+                })
+                .with_children(|parent| {
+                    parent.spawn_bundle(ImageBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(250.0), Val::Px(442.0)),
+                            ..Default::default()
+                        },
+                        material: materials
+                            .add(asset_server.load(asset!("controls/keyboard.png")).into()),
+                        ..Default::default()
+                    });
+                    parent.spawn_bundle(ImageBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(514.0), Val::Px(396.0)),
+                            ..Default::default()
+                        },
+                        material: materials
+                            .add(asset_server.load(asset!("controls/gamepad.png")).into()),
+                        ..Default::default()
+                    });
                 });
         });
 }
