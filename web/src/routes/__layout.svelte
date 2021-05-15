@@ -3,8 +3,8 @@
     import Matomo, { matomo } from '$lib/Matomo.svelte';
     import '../app.css';
 
-    const url = import.meta.env.VITE_MATOMO_HOST.toString();
-    const siteId = import.meta.env.VITE_MATOMO_SITE_ID.toString();
+    const url = import.meta.env.VITE_MATOMO_HOST as string | undefined;
+    const siteId = import.meta.env.VITE_MATOMO_SITE_ID as string | undefined;
 
     $: if ($page) matomo.trackPageView();
 
