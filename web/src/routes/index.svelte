@@ -2,6 +2,7 @@
     import { onMount, tick } from 'svelte';
     import TechStatus from '$lib/TechStatus.svelte';
     import loadScript from '$lib/loadScript';
+    import Licenses from '$lib/LICENSES.md';
     import wasm_script from '../../../pkg/asteroids_3d_lib.js?url';
     import wasm_mod from '../../../pkg/asteroids_3d_lib_bg.wasm?url';
     import bytesTotal from '../../../pkg/asteroids_3d_lib_bg.wasm?size';
@@ -146,5 +147,8 @@
         <p>
             <a href="https://github.com/lights0123/asteroids_3d">View source on GitHub</a>
         </p>
+        <div class="md mt-8">
+            <Licenses />
+        </div>
     </div>
 </section>

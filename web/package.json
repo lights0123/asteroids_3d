@@ -2,11 +2,22 @@
     "name": "asteroids_3d",
     "version": "0.0.1",
     "license": "MIT",
+    "type": "module",
     "scripts": {
         "dev": "svelte-kit dev",
         "build": "svelte-kit build",
         "preview": "svelte-kit preview"
     },
+    "prettier": {
+        "printWidth": 100,
+        "proseWrap": "never",
+        "semi": true,
+        "singleQuote": true,
+        "tabWidth": 4,
+        "trailingComma": "es5",
+        "useTabs": false
+    },
+    "dependencies": {},
     "devDependencies": {
         "@sveltejs/adapter-static": "1.0.0-next.9",
         "@sveltejs/kit": "1.0.0-next.107",
@@ -14,9 +25,12 @@
         "autoprefixer": "^10.2.5",
         "cssnano": "^5.0.2",
         "feather-icons": "^4.28.0",
+        "mdsvex": "^0.9.0",
         "postcss": "^8.2.15",
         "postcss-load-config": "^3.0.1",
         "postcss-nested": "^5.0.5",
+        "rehype-autolink-headings": "^5.0.1",
+        "rehype-slug": "^4.0.1",
         "rollup-plugin-svelte-svg": "^0.2.3",
         "svelte": "^3.38.2",
         "svelte-preprocess": "^4.7.3",
@@ -24,16 +38,5 @@
         "tslib": "^2.0.0",
         "typescript": "^4.0.0",
         "vite": "^2.3.2"
-    },
-    "type": "module",
-    "dependencies": {},
-    "prettier": {
-        "trailingComma": "es5",
-        "tabWidth": 4,
-        "useTabs": false,
-        "semi": true,
-        "singleQuote": true,
-        "printWidth": 100,
-        "proseWrap": "never"
     }
 }

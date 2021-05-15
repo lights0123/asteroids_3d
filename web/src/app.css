@@ -6,6 +6,19 @@ body {
     @apply bg-black text-white;
 }
 
-p a {
+p a,
+.md a:not(h1 a, h2 a, h3 a, h4 a, h5 a, h6 a) {
     @apply border-b border-blue-500 text-blue-300;
+}
+
+.md {
+    h1 {
+        @apply text-2xl;
+    }
+    ul {
+        @apply list-outside list-disc ml-4;
+    }
+    ol {
+        @apply list-outside list-decimal ml-4;
+    }
 }
