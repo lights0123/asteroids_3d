@@ -22,7 +22,7 @@ postcard = { version = "0.6", default-features = false, features = ["use-std"] }
 anyhow = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-bevy-inspector-egui = "0.4"
+bevy-inspector-egui = { version = "0.4", optional = true }
 bevy = "0.5"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -50,6 +50,7 @@ anyhow = "1.0"
 
 [features]
 uncached-web-assets = []
+inspector = ["bevy-inspector-egui"]
 
 [profile.dev.package."*"]
 opt-level = 2
@@ -64,3 +65,6 @@ overflow-checks = false
 opt-level = 3
 [profile.release.build-override]
 opt-level = 3
+
+#[package.metadata.wasm-pack.profile.release]
+#wasm-opt = false
