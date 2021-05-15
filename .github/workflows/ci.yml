@@ -51,6 +51,9 @@ jobs:
         working-directory: web
       - name: Build web
         run: yarn build
+        env:
+          VITE_MATOMO_HOST: ${{ secrets.VITE_MATOMO_HOST }}
+          VITE_MATOMO_SITE_ID: ${{ secrets.VITE_MATOMO_SITE_ID }}
         working-directory: web
       - name: Publish
         if: github.ref == 'refs/heads/main'
