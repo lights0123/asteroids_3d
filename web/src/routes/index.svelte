@@ -147,6 +147,7 @@
         <p>
             <a href="https://github.com/lights0123/asteroids_3d">View source on GitHub</a>
         </p>
+        <p>Game controller recommended</p>
         <div class="md mt-8">
             <Licenses />
         </div>
