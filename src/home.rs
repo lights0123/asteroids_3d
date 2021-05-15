@@ -12,7 +12,8 @@ impl Plugin for HomePlugin {
         let update_set = SystemSet::on_update(crate::AppState::Home)
             .with_system(button_system.system())
             .with_system(resume_button_system.system())
-            .with_system(resume.system());
+            .with_system(resume.system())
+            .with_system(update_gamepad.system());
         #[cfg(not(target_arch = "wasm32"))]
         let update_set = update_set.with_system(quit_button_system.system());
         app.init_resource::<ButtonMaterials>()
@@ -54,7 +55,7 @@ fn create_button<'a, 'c>(
             size: Size::new(Val::Percent(100.), Val::Auto),
             padding: Rect::all(Val::Px(5.)),
             margin: Rect::all(Val::Auto),
-            justify_content: JustifyContent::FlexStart,
+            justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..Default::default()
         },
@@ -81,6 +82,7 @@ fn create_button<'a, 'c>(
 struct PartOfUi;
 
 struct StartButton;
+struct GamepadInstructions;
 
 #[cfg(not(target_arch = "wasm32"))]
 struct QuitButton;
@@ -108,7 +110,7 @@ fn setup_menu(
             parent
                 .spawn_bundle(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Px(200.), Val::Auto),
+                        size: Size::new(Val::Px(200.), Val::Percent(100.)),
                         margin: Rect {
                             left: Val::Px(30.),
                             ..Default::default()
@@ -163,21 +165,39 @@ fn setup_menu(
                             .add(asset_server.load(asset!("controls/keyboard.png")).into()),
                         ..Default::default()
                     });
-                    parent.spawn_bundle(ImageBundle {
-                        style: Style {
-                            size: Size::new(Val::Px(514.0), Val::Px(396.0)),
+                    parent
+                        .spawn_bundle(ImageBundle {
+                            style: Style {
+                                size: Size::new(Val::Px(514.0), Val::Px(396.0)),
+                                display: Display::None,
+                                ..Default::default()
+                            },
+                            material: materials
+                                .add(asset_server.load(asset!("controls/gamepad.png")).into()),
                             ..Default::default()
-                        },
-                        material: materials
-                            .add(asset_server.load(asset!("controls/gamepad.png")).into()),
-                        ..Default::default()
-                    });
+                        })
+                        .insert(GamepadInstructions);
                 });
         });
 }
 
 fn remove_menu(mut commands: Commands, interaction_query: Query<Entity, With<PartOfUi>>) {
     interaction_query.for_each(|e| commands.entity(e).despawn_recursive());
+}
+
+fn update_gamepad(
+    gamepad: Res<Option<Gamepad>>,
+    mut q: Query<&mut Style, With<GamepadInstructions>>,
+) {
+    if gamepad.is_changed() {
+        if let Ok(mut style) = q.single_mut() {
+            style.display = if gamepad.is_some() {
+                Display::Flex
+            } else {
+                Display::None
+            }
+        }
+    }
 }
 
 fn button_system(
