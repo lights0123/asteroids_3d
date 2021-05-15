@@ -19,11 +19,7 @@ impl<T: crate::util::StateType> Plugin for CameraPlugin<T> {
 
 fn startup(mut commands: Commands) {
     commands
-        .spawn_bundle(PerspectiveCameraBundle {
-            transform: Transform::from_xyz(0., 9., -6.)
-                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-            ..Default::default()
-        })
+        .spawn_bundle(PerspectiveCameraBundle::default())
         .insert(TiedToGame);
 }
 
@@ -33,14 +29,11 @@ fn update_camera(
         Query<(&mut Transform, &Camera)>,
     )>,
 ) {
-    if let Ok(controllable) = query.q0().single() {
-        let controllable: Transform = *controllable;
-        for (transform, camera) in query.q1_mut().iter_mut() {
-            if !matches!(camera.name.as_ref().map(|s| s.as_str()), Some(CAMERA_3D)) {
+    if let Ok(&controllable) = query.q0().single() {
+        for (mut transform, camera) in query.q1_mut().iter_mut() {
+            if camera.name.as_ref().map(|s| s.as_str()) != Some(CAMERA_3D) {
                 continue;
             }
-            // IntelliJ types
-            let mut transform: Mut<Transform> = transform;
             transform.translation =
                 controllable.translation + controllable.rotation * Vec3::new(0., 9., -30.);
             transform.look_at(
